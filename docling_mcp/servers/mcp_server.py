@@ -30,7 +30,7 @@ class TransportType(str, enum.Enum):
     STREAMABLE_HTTP = "streamable-http"
 
 
-_DEFAULT_TOOLS = [ToolGroups.CONVERSION, ToolGroups.GENERATION, ToolGroups.MANIPULATION]
+_DEFAULT_TOOLS = [ToolGroups.CONVERSION]
 
 
 @app.command()
