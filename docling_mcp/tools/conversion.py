@@ -350,3 +350,46 @@ async def convert_directory_files_into_docling_document(
         raise McpError(
             ErrorData(code=INTERNAL_ERROR, message=f"Unexpected error: {e!s}")
         ) from e
+
+
+@mcp.tool(title="Convert HTML files in a folder to Markdown")
+async def convert_html_to_markdown(
+    folder_path: Annotated[
+        str,
+        Field(description="The absolute local file path to the folder to scan."),
+    ],
+    ctx: Context,  # type: ignore[type-arg]
+) -> ConvertToMarkdownOutput:
+    """Converts HTML files in a folder to Markdown, skipping existing .md counterparts."""
+    try:
+        p = Path(folder_path)
+        if not p.is_dir():
+            raise McpError(
+                ErrorData(
+                    code=INTERNAL_ERROR, message=f"Path is not a directory: {folder_path}"
+                )
+            )
+
+        html_files = list(p.glob("*.html"))
+        md_files = {f.stem for f in p.glob("*.md")}
+
+        files_to_convert = [
+            str(html_file)
+            for html_file in html_files
+            if html_file.stem not in md_files
+        ]
+
+        if not files_to_convert:
+            await ctx.info("No new HTML files to convert.")
+            return ConvertToMarkdownOutput(output_files=[])
+
+        await ctx.info(f"Found {len(files_to_convert)} new HTML files to convert.")
+        return await convert_to_markdown(
+            sources=files_to_convert, ctx=ctx, output_folder=folder_path
+        )
+
+    except Exception as e:
+        logger.exception(f"Error converting new HTML files in folder: {folder_path}")
+        raise McpError(
+            ErrorData(code=INTERNAL_ERROR, message=f"Unexpected error: {e!s}")
+        ) from e

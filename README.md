@@ -1,16 +1,17 @@
-# Docling-MCP Fork: Document Conversion Tools
+# Docling-MCP Fork: File-Based Document Conversion
 
-This is a personal fork of the `docling-project/docling-mcp` repository, streamlined to focus on specific document conversion tasks.
+This is a personal fork of the `docling-project/docling-mcp` repository, streamlined for file-based document conversion workflows.
 
 ## Purpose
 
-The primary goal of this fork is to provide a stable and focused version of the Docling MCP server that exposes only the `convert_to_markdown` tool. This allows for reliable conversion of various document formats (HTML, PDF, etc.) into Markdown without the overhead of other experimental or unused features.
+The primary goal of this fork is to provide a stable and focused version of the Docling MCP server optimized for command-line and LLM-based workflows. By focusing exclusively on tools that convert and **save documents directly to the filesystem**, it avoids the need for inline parsing of large, converted files within a terminal session. This makes it ideal for batch processing and interacting with local files in an automated agentic setting.
 
-## Core Tool: `convert_to_markdown`
+## Core Tools
 
-This server provides one main tool:
+This server provides two main tools focused on file-based conversion:
 
-*   **`convert_to_markdown`**: Converts one or more documents from local file paths or URLs into Markdown files.
+*   **`convert_to_markdown`**: Converts one or more documents from local file paths or URLs into Markdown files, saving them to disk.
+*   **`convert_html_to_markdown`**: Scans a local folder for HTML files and converts only those that do not already have a corresponding Markdown file, saving the new files to disk.
 
 ## How to Run This Server
 
