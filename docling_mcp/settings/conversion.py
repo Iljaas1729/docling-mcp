@@ -11,7 +11,9 @@ class Settings(BaseSettings):
         env_file=".env",
         # extra="allow",
     )
+    do_ocr: bool = True
     keep_images: bool = False
+    default_output_directory: str = "C:\\Users\\Iljaas\\Downloads\\"
 
 
 settings = Settings()

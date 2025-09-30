@@ -183,3 +183,10 @@ cython_debug/
 
 # Milvus local databases
 *.db
+
+# Private files
+MCP_SERVER_TEST_RESULTS.md
+Scan 2 Sep 2025, 08.15.md
+Scan 2 Sep 2025, 08.15.pdf
+memory_bank.md
+output/

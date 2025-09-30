@@ -4,7 +4,7 @@ import gc
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 from mcp.server.fastmcp import Context
 from mcp.shared.exceptions import McpError
@@ -52,10 +52,10 @@ class IsDoclingDocumentInCacheOutput:
     ]
 
 
-@mcp.tool(
-    title="Is Docling document in cache",
-    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
-)
+# @mcp.tool(
+#     title="Is Docling document in cache",
+#     annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False),
+# )
 def is_document_in_local_cache(
     document_key: Annotated[
         str,
@@ -87,7 +87,7 @@ class ConvertDocumentOutput:
 @lru_cache
 def _get_converter() -> DocumentConverter:
     pipeline_options = PdfPipelineOptions()
-    # pipeline_options.do_ocr = False  # Skip OCR for faster processing (enable for scanned docs)
+    pipeline_options.do_ocr = settings.do_ocr
     pipeline_options.generate_page_images = settings.keep_images
 
     format_options: dict[InputFormat, FormatOption] = {
@@ -99,10 +99,10 @@ def _get_converter() -> DocumentConverter:
     return DocumentConverter(format_options=format_options)
 
 
-@mcp.tool(
-    title="Convert document into Docling document",
-    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False),
-)
+# @mcp.tool(
+#     title="Convert document into Docling document",
+#     annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False),
+# )
 def convert_document_into_docling_document(
     source: Annotated[
         str,
@@ -182,11 +182,91 @@ def convert_document_into_docling_document(
         ) from e
 
 
-@mcp.tool(
-    title="Convert files from directory into Docling document",
-    structured_output=True,
-    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False),
-)
+@dataclass
+class ConvertToMarkdownOutput:
+    """Output of the convert_to_markdown tool."""
+
+    output_files: Annotated[
+        list[str],
+        Field(description="A list of file paths to the generated Markdown files."),
+    ]
+
+
+@mcp.tool(title="Convert one or more documents to Markdown")
+async def convert_to_markdown(
+    sources: Annotated[
+        list[str],
+        Field(
+            description="A list of URLs or absolute file paths to the documents to convert."
+        ),
+    ],
+    ctx: Context,  # type: ignore[type-arg]
+    output_folder: Annotated[
+        Optional[str],
+        Field(
+            description=(
+                "The absolute file path to the directory where the Markdown files will be saved. "
+                "If not provided, for file sources, the output will be in the same directory as the source file. "
+                "For URL sources, the output will be in the default directory configured in the server settings."
+            )
+        ),
+    ] = None,
+) -> ConvertToMarkdownOutput:
+    """Convert one or more documents to Markdown and save them to a folder.
+
+    This tool supports a variety of document formats, including docx, html, pdf, and images.
+    It takes a list of document sources (URLs or absolute file paths),
+    converts each document to a Docling document, exports it to Markdown,
+    and saves it to the specified output folder.
+    """
+    output_files = []
+    converter = _get_converter()
+    total_sources = len(sources)
+
+    for i, source in enumerate(sources):
+        try:
+            source = source.strip("\"'")
+            logger.info(f"Processing document from source: {source}")
+            await ctx.info(f"Processing source: {source}")
+            await ctx.report_progress(i + 1, total_sources)
+
+            current_output_path: Path
+            if output_folder:
+                current_output_path = Path(output_folder)
+            else:
+                # Determine output path based on source type
+                if Path(source).is_absolute() and Path(source).exists(): # Check if it's a local file path
+                    current_output_path = Path(source).parent
+                else: # Assume it's a URL or invalid local path, use default
+                    current_output_path = Path(settings.default_output_directory)
+
+            current_output_path.mkdir(parents=True, exist_ok=True)
+
+            result = converter.convert(source)
+            if hasattr(result, "status") and hasattr(result.status, "is_error") and result.status.is_error:
+                error_msg = f"Conversion failed for {source}"
+                raise McpError(ErrorData(code=INTERNAL_ERROR, message=error_msg))
+
+            markdown_content = result.document.export_to_markdown()
+            file_name = Path(source).stem
+            output_file = current_output_path / f"{file_name}.md"
+            output_file.write_text(markdown_content, encoding="utf-8")
+            output_files.append(str(output_file))
+            logger.info(f"Successfully converted {source} to {output_file}")
+
+        except Exception as e:
+            logger.exception(f"Error converting document: {source}")
+            raise McpError(
+                ErrorData(code=INTERNAL_ERROR, message=f"Unexpected error for {source}: {e!s}")
+            ) from e
+
+    cleanup_memory()
+    return ConvertToMarkdownOutput(output_files=output_files)
+
+
+# @mcp.tool(
+#     title="Convert files from directory into Docling document", structured_output=True
+# )
 async def convert_directory_files_into_docling_document(
     source: Annotated[
         str,

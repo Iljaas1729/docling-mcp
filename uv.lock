@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'darwin'",
@@ -796,6 +796,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
+    { name = "typer" },
 ]
 
 [package.optional-dependencies]
@@ -866,6 +867,7 @@ requires-dist = [
     { name = "smolagents", extras = ["mcp", "litellm"], marker = "extra == 'smolagents'", specifier = ">=1.0.0" },
     { name = "torch", marker = "extra == 'smolagents'", specifier = ">=2.0.0" },
     { name = "transformers", marker = "extra == 'smolagents'", specifier = ">=4.30.0" },
+    { name = "typer", specifier = ">=0.12" },
 ]
 provides-extras = ["llama-index-rag", "llama-stack", "smolagents", "mellea"]
 
