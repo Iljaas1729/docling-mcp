@@ -89,6 +89,17 @@ def _get_converter() -> DocumentConverter:
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = settings.do_ocr
     pipeline_options.generate_page_images = settings.keep_images
+    
+    # Configure threading
+    if hasattr(settings, 'num_threads'):
+        pipeline_options.accelerator_options.num_threads = settings.num_threads
+    
+    # Configure OCR options
+    if hasattr(settings, 'force_full_page_ocr') and settings.force_full_page_ocr:
+        pipeline_options.ocr_options.force_full_page_ocr = True
+    
+    if hasattr(settings, 'ocr_confidence_threshold'):
+        pipeline_options.ocr_options.confidence_threshold = settings.ocr_confidence_threshold
 
     format_options: dict[InputFormat, FormatOption] = {
         InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options),
