@@ -192,3 +192,9 @@ memory_bank.md
 output/
 docling_accuracy_vs_speed_analysis.md
 check_html_tables.py
+archive_html_table_flattening_experiments/
+.task-history
+20250930-080017_event_news_2052487_LSE_RNS_VOD_Transaction-in-Own-Shares_htmlrag.html
+20250930-080017_event_news_2052487_LSE_RNS_VOD_Transaction-in-Own-Shares_htmlrag.md
+20250930-080017_event_news_2052487_LSE_RNS_VOD_Transaction-in-Own-Shares.html
+20250930-080017_event_news_2052487_LSE_RNS_VOD_Transaction-in-Own-Shares.md
